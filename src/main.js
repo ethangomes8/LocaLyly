@@ -182,10 +182,14 @@ function toggleAuthMode() {
   isRegisterMode = !isRegisterMode
   $('auth-confirm-group').style.display = isRegisterMode ? 'block' : 'none'
   $('btn-auth-submit').textContent = isRegisterMode ? 'Créer mon compte' : 'Se connecter'
-  $('auth-toggle-text').innerHTML = isRegisterMode
-    ? 'Déjà un compte ? <a id="auth-toggle-link">Se connecter</a>'
-    : 'Pas de compte ? <a id="auth-toggle-link">Créer un compte</a>'
+  
+  const toggleHtml = isRegisterMode
+    ? 'Déjà un compte ? <span id="auth-toggle-link" style="color:var(--text-accent);cursor:pointer;font-weight:600;">Se connecter</span>'
+    : 'Pas de compte ? <span id="auth-toggle-link" style="color:var(--text-accent);cursor:pointer;font-weight:600;">Créer un compte</span>'
+    
+  $('auth-toggle-text').innerHTML = toggleHtml
   $('auth-toggle-link').addEventListener('click', toggleAuthMode)
+  validateAuth() // Re-validate the form since confirm password might be hidden now
 }
 
 // ===== Session Menu =====
