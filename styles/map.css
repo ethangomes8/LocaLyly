@@ -48,7 +48,7 @@
 
 /* ===== Custom Markers ===== */
 .marker-me, .marker-other {
-  transition: transform 1.2s ease-out !important;
+  transition: transform 2s linear !important;
 }
 
 .marker-dot {

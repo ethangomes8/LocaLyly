@@ -1,5 +1,5 @@
 import { joinChannel, sendLocation, leaveChannel } from './supabase.js'
-import { initMap, updateMyPosition, updateOtherPosition, removeOtherMarker, fitBothMarkers, getDistance, formatDistance, destroyMap, getMyLatLng } from './map.js'
+import { initMap, updateMyPosition, updateOtherPosition, removeOtherMarker, setOtherOffline, fitBothMarkers, getDistance, formatDistance, destroyMap, getMyLatLng } from './map.js'
 import { startWatching, stopWatching, setEcoMode } from './geolocation.js'
 import { generateCode, createSession, joinSessionByCode, getMySession, deactivateSession } from './session.js'
 import { showScreen, showModal, hideModal, showToast, updateInfoPanel, setPartnerStatus, formatTimeAgo, setupModalCloseHandlers } from './ui.js'
@@ -551,9 +551,9 @@ function handlePresenceJoin(presence) {
 
 function handlePresenceLeave(presence) {
   setPartnerStatus(false)
-  removeOtherMarker()
-  otherUsername = null; lastOtherUpdate = null
-  updateInfoPanel({ partnerName: 'Déconnecté', distance: '—', lastUpdate: '—' })
+  setOtherOffline(presence.username, presence.color, presence.avatar)
+  // otherUsername = null; lastOtherUpdate = null; // Do NOT clear this so we keep the "Il y a X min" running
+  updateInfoPanel({ partnerName: (presence.username || 'Ami') + ' (Hors ligne)', distance: formatDistance(getDistance()), lastUpdate: lastOtherUpdate ? formatTimeAgo(lastOtherUpdate) : '—' })
   showToast(`${presence.username} s'est déconnecté`, 'error')
   if (notificationsEnabled) sendNotification('Partenaire déconnecté', `${presence.username} a quitté la session.`)
 }
@@ -565,9 +565,14 @@ function goToMap() {
 }
 
 function updateInfoDisplay() {
+  let nameDisplay = otherUsername || 'En attente...'
+  if (otherUsername && !$('status-dot').classList.contains('active')) {
+    nameDisplay += ' (Hors ligne)'
+  }
+
   updateInfoPanel({
     distance: formatDistance(getDistance()),
-    partnerName: otherUsername || 'En attente...',
+    partnerName: nameDisplay,
     lastUpdate: lastOtherUpdate ? formatTimeAgo(lastOtherUpdate) : '—'
   })
 }

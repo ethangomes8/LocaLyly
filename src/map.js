@@ -163,6 +163,15 @@ function updateConnectingLine() {
 }
 
 /**
+ * Mark the other person's marker as offline.
+ */
+export function setOtherOffline(username, color, avatar) {
+  if (otherMarker) {
+    otherMarker.setIcon(createDotIcon('other', username || 'Ami', color, avatar, 'wifiOff'))
+  }
+}
+
+/**
  * Remove the other person's marker.
  */
 export function removeOtherMarker() {
