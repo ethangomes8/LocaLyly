@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="LocaLyly — Partagez votre position en temps réel avec vos proches">
+  <meta name="theme-color" content="#f0f2f5">
+  <title>LocaLyly — Localisation en Temps Réel</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/components.css">
+  <link rel="stylesheet" href="/styles/map.css">
+</head>
+<body>
+
+  <!-- ========== AUTH SCREEN ========== -->
+  <div id="auth-screen" class="screen active">
+    <div class="auth-container">
+      <div class="logo-section" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="url(#brandGradientMain)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="brandGradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#818CF8" />
+                <stop offset="100%" stop-color="#4F46E5" />
+              </linearGradient>
+            </defs>
+            <path d="M12 21s-8-4.5-8-11a8 8 0 1 1 16 0c0 6.5-8 11-8 11z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <h1 class="logo-text" style="font-size:2.5rem;margin:0;">Loca<span class="accent">Lyly</span></h1>
+        </div>
+        <p class="tagline" style="margin:0;font-size:0.95rem;color:var(--text-secondary);">Partagez votre position en temps réel</p>
+      </div>
+
+      <div class="card" style="width:100%;display:flex;flex-direction:column;gap:1rem;">
+        <div class="input-group">
+          <label for="auth-username">Nom d'utilisateur</label>
+          <input type="text" id="auth-username" placeholder="Ton pseudo" maxlength="20" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="input-group">
+          <label for="auth-password">Mot de passe</label>
+          <div class="password-wrapper">
+            <input type="password" id="auth-password" placeholder="Min. 6 caractères" autocomplete="current-password">
+            <button type="button" class="password-toggle" id="toggle-password"></button>
+          </div>
+        </div>
+        <div id="auth-confirm-group" class="input-group" style="display:none;">
+          <label for="auth-confirm">Confirmer le mot de passe</label>
+          <div class="password-wrapper">
+            <input type="password" id="auth-confirm" placeholder="Confirme ton mot de passe" autocomplete="new-password">
+          </div>
+        </div>
+        <button id="btn-auth-submit" class="btn btn-primary" disabled>Se connecter</button>
+      </div>
+
+      <p class="auth-toggle" id="auth-toggle-text">
+        Pas de compte ? <a id="auth-toggle-link">Créer un compte</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ========== DASHBOARD SCREEN ========== -->
+  <div id="dashboard-screen" class="screen">
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <div class="dashboard-user">
+          <span id="dashboard-user-icon"></span>
+          <span id="dashboard-username"></span>
+        </div>
+        <div style="display:flex;gap:0.25rem;">
+          <button id="btn-settings" class="btn-icon-only" title="Paramètres"></button>
+          <button id="btn-logout" class="btn-icon-only btn-danger" title="Déconnexion"></button>
+        </div>
+      </div>
+
+      <div class="logo-section" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin-top:1rem;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="url(#brandGradientDash)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="brandGradientDash" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#818CF8" />
+              <stop offset="100%" stop-color="#4F46E5" />
+            </linearGradient>
+          </defs>
+          <path d="M12 21s-8-4.5-8-11a8 8 0 1 1 16 0c0 6.5-8 11-8 11z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <h1 class="logo-text" style="font-size:2.5rem;margin:0;">Loca<span class="accent">Lyly</span></h1>
+      </div>
+
+      <!-- Active session card (hidden by default) -->
+      <div id="active-session-section" class="active-session-card" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h3 style="margin:0;">Session active</h3>
+          <button id="btn-session-menu" class="btn-icon-only" title="Options" style="width:28px;height:28px;"></button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;">
+          <span class="active-session-code" id="active-session-code"></span>
+          <button id="btn-rejoin" class="btn btn-primary" style="padding:0.6rem 1.2rem;font-size:0.85rem;">Reprendre</button>
+        </div>
+      </div>
+
+      <!-- Session menu dropdown (hidden) -->
+      <div id="session-menu" class="session-menu" style="display:none;">
+        <button id="btn-kill-session" class="session-menu-item session-menu-danger">
+          <span id="icon-kill-session"></span>
+          Supprimer la session
+        </button>
+      </div>
+
+      <div class="actions-section" style="width:100%;display:flex;flex-direction:column;gap:1rem;">
+        <button id="btn-create" class="btn btn-primary">
+          <span id="icon-create"></span>
+          Créer une session
+        </button>
+        <div class="divider"><span>ou</span></div>
+        <button id="btn-join" class="btn btn-secondary">
+          <span id="icon-join"></span>
+          Rejoindre une session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== JOIN MODAL ========== -->
+  <div id="join-modal" class="modal">
+    <div class="modal-backdrop" data-close-modal="join-modal"></div>
+    <div class="modal-content card">
+      <h2>Rejoindre une session</h2>
+      <p>Entre le code partagé par ton ami</p>
+      <div class="code-input-group">
+        <input type="text" id="session-code-input" placeholder="ABC123" maxlength="6" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="modal-actions">
+        <button id="btn-join-confirm" class="btn btn-primary" disabled>Rejoindre</button>
+        <button id="btn-join-cancel" class="btn btn-ghost" data-close-modal="join-modal">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SESSION CREATED MODAL ========== -->
+  <div id="created-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card">
+      <h2>Session créée !</h2>
+      <p>Partage ce code avec ton ami</p>
+      <div class="session-code-display">
+        <span id="session-code-text"></span>
+        <button id="btn-copy-code" class="btn-icon-only" title="Copier le code"></button>
+      </div>
+      <p class="hint">En attente de l'autre personne...</p>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <button id="btn-skip-wait" class="skip-link" style="display:none;">Continuer vers la carte</button>
+    </div>
+  </div>
+
+  <!-- ========== KILL SESSION CONFIRM MODAL ========== -->
+  <div id="kill-modal" class="modal">
+    <div class="modal-backdrop" data-close-modal="kill-modal"></div>
+    <div class="modal-content card">
+      <h2>Supprimer la session ?</h2>
+      <p>Tu ne pourras plus voir la position de ton partenaire. Cette action est définitive.</p>
+      <div class="modal-actions">
+        <button id="btn-kill-confirm" class="btn btn-primary" style="background:#ef4444;box-shadow:0 4px 14px rgba(239,68,68,0.25);">Oui, supprimer</button>
+        <button id="btn-kill-cancel" class="btn btn-ghost" data-close-modal="kill-modal">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MAP SCREEN ========== -->
+  <div id="map-screen" class="screen">
+    <div id="map-container"></div>
+    <div id="top-bar" class="overlay-panel">
+      <div class="session-info">
+        <span class="session-badge" id="session-badge"></span>
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Connexion...</span>
+      </div>
+      <div style="display:flex;gap:0.25rem;">
+        <button id="btn-map-settings" class="btn-icon-only" title="Paramètres"></button>
+        <button id="btn-back-home" class="btn-icon-only" title="Accueil"></button>
+      </div>
+    </div>
+
+    <div id="info-panel" class="overlay-panel">
+      <div class="info-row">
+        <div class="info-item">
+          <span class="info-label">Distance</span>
+          <span class="info-value" id="distance-value">—</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-item">
+          <span class="info-label">Partenaire</span>
+          <span class="info-value" id="partner-name">En attente...</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-item">
+          <span class="info-label">Dernière MAJ</span>
+          <span class="info-value" id="last-update">—</span>
+        </div>
+      </div>
+    </div>
+    <button id="btn-recenter" class="fab" title="Recentrer la carte"></button>
+  </div>
+
+  <!-- ========== SETTINGS PANEL ========== -->
+  <div id="settings-backdrop" class="settings-backdrop"></div>
+  <div id="settings-panel" class="settings-panel">
+    <div class="settings-header">
+      <h2>Paramètres</h2>
+      <button id="btn-close-settings" class="btn-icon-only"></button>
+    </div>
+    <div class="settings-section">
+      <h3>Profil</h3>
+      <div class="settings-label">Avatar</div>
+      <div class="avatar-grid" id="avatar-grid"></div>
+      <div class="settings-label">Couleur du marqueur</div>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+    <div class="settings-section">
+      <h3>Général</h3>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span id="icon-theme"></span> Thème Sombre
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-theme">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span id="icon-eco"></span> Mode Éco (Batterie)
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-eco">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Application</h3>
+      <button id="btn-install" class="btn btn-secondary" style="display:none;">
+        <span id="icon-install"></span>
+        Installer l'application
+      </button>
+      <p class="settings-hint" id="install-hint"></p>
+    </div>
+    <div class="settings-section">
+      <button id="btn-settings-logout" class="btn btn-ghost btn-danger" style="width:100%;">
+        Se déconnecter
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== OFFLINE BANNER ========== -->
+  <div id="offline-banner" class="offline-banner hidden"></div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
