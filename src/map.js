@@ -48,6 +48,16 @@ function createDotIcon(type, label, color, avatar, status) {
  * @param {string} containerId
  */
 export function initMap(containerId) {
+  if (map) {
+    map.remove()
+    map = null
+  }
+  
+  const container = document.getElementById(containerId)
+  if (container) {
+    container._leaflet_id = null // Force clear leaflet id to prevent initialization errors
+  }
+
   map = L.map(containerId, {
     zoomControl: true,
     attributionControl: true,
