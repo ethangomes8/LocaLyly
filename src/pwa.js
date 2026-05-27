@@ -20,6 +20,9 @@ export function initPWA() {
     deferredPrompt = null
     updateInstallButton()
   })
+
+  // Initialize button state immediately
+  updateInstallButton()
 }
 
 /**
