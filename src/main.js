@@ -3,9 +3,10 @@ import { initMap, updateMyPosition, updateOtherPosition, removeOtherMarker, fitB
 import { startWatching, stopWatching, setEcoMode } from './geolocation.js'
 import { generateCode, createSession, joinSessionByCode, getMySession, deactivateSession } from './session.js'
 import { showScreen, showModal, hideModal, showToast, updateInfoPanel, setPartnerStatus, formatTimeAgo, setupModalCloseHandlers } from './ui.js'
-import { signUp, signIn, signOut, getAuthSession, getProfile, updateProfile } from './auth.js'
+import { signUp, signIn, signOut, getAuthSession, getProfile, updateProfile, onAuthChange } from './auth.js'
 import { icons, setIcon, markerColors, avatarList } from './icons.js'
 import { initPWA, promptInstall } from './pwa.js'
+import { requestNotificationPermission, sendNotification } from './notifications.js'
 
 // ===== State =====
 let currentUser = null
@@ -13,12 +14,13 @@ let currentProfile = null
 let currentSession = null
 let currentCode = null
 let otherUsername = null
-let otherColor = null
+let otherColor = '#8b5cf6'
 let lastOtherUpdate = null
 let infoInterval = null
 let isRegisterMode = false
 let isOnMap = false
 let batteryLevel = null
+let notificationsEnabled = false
 
 // ===== DOM =====
 const $ = id => document.getElementById(id)
@@ -173,6 +175,7 @@ function setupEventListeners() {
   
   $('toggle-theme').addEventListener('change', handleThemeChange)
   $('toggle-eco').addEventListener('change', handleEcoChange)
+  $('toggle-notif').addEventListener('change', handleNotifChange)
 }
 
 function toggleAuthMode() {
@@ -303,6 +306,19 @@ async function handleEcoChange(e) {
       await updateProfile(currentUser.id, { eco_mode: isEco })
     } catch (err) { console.warn(err) }
   }
+}
+
+async function handleNotifChange(e) {
+  const wantsNotif = e.target.checked
+  if (wantsNotif) {
+    const granted = await requestNotificationPermission()
+    if (!granted) {
+      $('toggle-notif').checked = false
+      showToast('Notifications bloquées par le navigateur.', 'error')
+      return
+    }
+  }
+  notificationsEnabled = wantsNotif
 }
 
 // ===== Offline Detection =====
@@ -523,9 +539,9 @@ function handleIncomingLocation(payload) {
 }
 
 function handlePresenceJoin(presence) {
-  otherUsername = presence.username
   setPartnerStatus(true, presence.username)
   showToast(`${presence.username} a rejoint !`, 'success')
+  if (notificationsEnabled) sendNotification('Nouveau partenaire', `${presence.username} a rejoint la session !`)
   if ($('created-modal').classList.contains('active')) { hideModal('created-modal'); goToMap() }
 }
 
@@ -535,6 +551,7 @@ function handlePresenceLeave(presence) {
   otherUsername = null; lastOtherUpdate = null
   updateInfoPanel({ partnerName: 'Déconnecté', distance: '—', lastUpdate: '—' })
   showToast(`${presence.username} s'est déconnecté`, 'error')
+  if (notificationsEnabled) sendNotification('Partenaire déconnecté', `${presence.username} a quitté la session.`)
 }
 
 function goToMap() {
