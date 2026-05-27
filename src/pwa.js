@@ -73,7 +73,7 @@ function updateInstallButton() {
     
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
     if (isIOS) {
-      hint.innerHTML = 'Sur iPhone : Touche l\'icône <b>Partager</b> en bas de Safari, puis <b>"Sur l\'écran d\'accueil"</b>.'
+      hint.innerHTML = 'Sur iPhone : Touche l\'icône <b>Partager</b> en bas de Safari, puis <b>"Ajouter à l\'écran d\'accueil"</b>.'
     } else {
       hint.innerHTML = 'Ouvre dans Chrome pour pouvoir installer l\'application.'
     }
