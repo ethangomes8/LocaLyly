@@ -25,6 +25,9 @@ export function startWatching(callback) {
         const { latitude, longitude, accuracy, speed } = position.coords
         const now = Date.now()
 
+        // Ignore highly inaccurate positions (e.g., cell tower triangulation with >150m error)
+        if (accuracy > 150) return
+
         // Always process first position immediately
         if (!firstPositionReceived) {
           firstPositionReceived = true

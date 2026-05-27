@@ -65,14 +65,15 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
-  // App shell: network-first, fallback to cache
+  // App shell: Stale-While-Revalidate for instant load
   e.respondWith(
-    fetch(e.request)
-      .then(resp => {
-        const clone = resp.clone()
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone))
+    caches.match(e.request).then(cached => {
+      const fetchPromise = fetch(e.request).then(resp => {
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, resp.clone()))
         return resp
-      })
-      .catch(() => caches.match(e.request))
+      }).catch(() => {})
+      
+      return cached || fetchPromise
+    })
   )
 })

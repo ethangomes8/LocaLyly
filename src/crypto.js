@@ -16,8 +16,8 @@ export async function deriveKey(code) {
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: enc.encode('LocaLylySalt#2026'),
-      iterations: 100000,
+      salt: enc.encode('LocaLyly_SuperSecureSalt_v2_2026!@#'),
+      iterations: 250000,
       hash: 'SHA-256'
     },
     keyMaterial,
