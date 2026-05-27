@@ -367,6 +367,11 @@ input, button {
               color var(--duration-fast);
 }
 
+/* Logo Theming */
+.app-logo-dark { display: none; }
+[data-theme="dark"] .app-logo-light { display: none; }
+[data-theme="dark"] .app-logo-dark { display: inline-block; }
+
 .fab svg {
   width: 20px;
   height: 20px;
