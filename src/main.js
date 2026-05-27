@@ -7,6 +7,7 @@ import { signUp, signIn, signOut, getAuthSession, getProfile, updateProfile, onA
 import { icons, setIcon, markerColors, avatarList } from './icons.js'
 import { initPWA, promptInstall } from './pwa.js'
 import { requestNotificationPermission, sendNotification } from './notifications.js'
+import { inject } from '@vercel/analytics'
 
 // ===== State =====
 let currentUser = null
@@ -27,6 +28,7 @@ const $ = id => document.getElementById(id)
 
 // ===== Init =====
 async function init() {
+  inject()
   initPWA()
   setupIcons()
   setupModalCloseHandlers()
