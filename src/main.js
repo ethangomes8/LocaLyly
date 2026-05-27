@@ -1,3 +1,4 @@
+import { inject } from '@vercel/analytics'
 import { joinChannel, sendLocation, leaveChannel } from './supabase.js'
 import { initMap, updateMyPosition, updateOtherPosition, removeOtherMarker, setOtherOffline, fitBothMarkers, getDistance, formatDistance, destroyMap, getMyLatLng } from './map.js'
 import { startWatching, stopWatching, setEcoMode } from './geolocation.js'
@@ -27,6 +28,7 @@ const $ = id => document.getElementById(id)
 
 // ===== Init =====
 async function init() {
+  inject()
   initPWA()
   setupIcons()
   setupModalCloseHandlers()
