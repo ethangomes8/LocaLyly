@@ -20,8 +20,18 @@
 </head>
 <body>
 
+  <!-- ========== SPLASH SCREEN ========== -->
+  <div id="splash-screen" class="screen active" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:var(--bg-primary);">
+    <img src="/logo.png" alt="LocaLyly Logo" class="app-logo-light" style="width:140px; height:auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));" />
+    <img src="/logo-sombre.png" alt="LocaLyly Logo" class="app-logo-dark" style="width:140px; height:auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));" />
+    <div style="margin-top: 2rem; width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--color-blue); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+  </div>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
   <!-- ========== AUTH SCREEN ========== -->
-  <div id="auth-screen" class="screen active">
+  <div id="auth-screen" class="screen">
     <div class="auth-container">
       <div class="logo-section" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:1.5rem;">
         <img src="/logo.png" alt="LocaLyly Logo" class="app-logo-light" style="width:140px; height:auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));" />
