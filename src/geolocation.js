@@ -1,4 +1,8 @@
+import { Capacitor, registerPlugin } from '@capacitor/core'
+const BackgroundGeolocation = registerPlugin('BackgroundGeolocation')
+
 let watchId = null
+let watcherId = null // For Capacitor native watcher
 let lastSentTime = 0
 let throttleMs = 2000 // default 2s
 
@@ -13,36 +17,62 @@ export function setEcoMode(enabled) {
  */
 export function startWatching(callback) {
   return new Promise((resolve, reject) => {
+    let firstPositionReceived = false
+
+    const handlePosition = (coords) => {
+      const { latitude, longitude, accuracy, speed } = coords
+      const now = Date.now()
+
+      // Ignore highly inaccurate positions (e.g., cell tower triangulation with >150m error)
+      if (accuracy > 150) return
+
+      // Always process first position immediately
+      if (!firstPositionReceived) {
+        firstPositionReceived = true
+        callback(latitude, longitude, accuracy, speed)
+        lastSentTime = now
+        resolve()
+        return
+      }
+
+      // Throttle subsequent updates
+      if (now - lastSentTime >= throttleMs) {
+        callback(latitude, longitude, accuracy, speed)
+        lastSentTime = now
+      }
+    }
+
+    // --- Native iOS/Android (Capacitor) ---
+    if (Capacitor.isNativePlatform()) {
+      BackgroundGeolocation.addWatcher(
+        {
+          backgroundMessage: "LocaLyly partage ta position en direct.",
+          backgroundTitle: "Partage de position",
+          requestPermissions: true,
+          stale: false,
+          distanceFilter: 1
+        },
+        (location, error) => {
+          if (error) {
+            if (!firstPositionReceived) reject(new Error('Erreur GPS en arrière-plan: ' + error.message))
+            return
+          }
+          handlePosition(location)
+        }
+      ).then(id => {
+        watcherId = id
+      }).catch(err => reject(new Error('Impossible d\'activer le GPS: ' + err.message)))
+      return
+    }
+
+    // --- Web Browser (PWA) Fallback ---
     if (!navigator.geolocation) {
       reject(new Error('Géolocalisation non supportée par ce navigateur.'))
       return
     }
 
-    let firstPositionReceived = false
-
     watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude, accuracy, speed } = position.coords
-        const now = Date.now()
-
-        // Ignore highly inaccurate positions (e.g., cell tower triangulation with >150m error)
-        if (accuracy > 150) return
-
-        // Always process first position immediately
-        if (!firstPositionReceived) {
-          firstPositionReceived = true
-          callback(latitude, longitude, accuracy, speed)
-          lastSentTime = now
-          resolve()
-          return
-        }
-
-        // Throttle subsequent updates
-        if (now - lastSentTime >= throttleMs) {
-          callback(latitude, longitude, accuracy, speed)
-          lastSentTime = now
-        }
-      },
+      (position) => handlePosition(position.coords),
       (error) => {
         let message
         switch (error.code) {
@@ -61,23 +91,25 @@ export function startWatching(callback) {
 
         if (!firstPositionReceived) {
           reject(new Error(message))
+        } else {
+          console.warn('GPS Error:', message)
         }
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 2000
-      }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     )
   })
 }
 
 /**
- * Stop watching position.
+ * Stop watching position
  */
 export function stopWatching() {
-  if (watchId !== null) {
+  if (watchId !== null && navigator.geolocation) {
     navigator.geolocation.clearWatch(watchId)
     watchId = null
+  }
+  if (watcherId !== null && Capacitor.isNativePlatform()) {
+    BackgroundGeolocation.removeWatcher({ id: watcherId })
+    watcherId = null
   }
 }
