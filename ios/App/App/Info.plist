@@ -47,5 +47,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>LocaLyly a besoin de ta position pour la partager avec tes amis sur la carte.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>LocaLyly a besoin d'accéder au GPS en arrière-plan pour que ton partenaire puisse te suivre même quand tu ranges ton téléphone.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 </dict>
 </plist>
