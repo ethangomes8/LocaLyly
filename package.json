@@ -10,14 +10,14 @@
   },
   "dependencies": {
     "@capacitor-community/background-geolocation": "^1.2.26",
-    "@capacitor/core": "^8.3.4",
-    "@capacitor/ios": "^8.3.4",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/ios": "^6.2.1",
     "@supabase/supabase-js": "^2.49.0",
     "@vercel/analytics": "^2.0.1",
     "leaflet": "^1.9.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.3.4",
+    "@capacitor/cli": "^6.2.1",
     "vite": "^6.0.0"
   }
 }
