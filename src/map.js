@@ -4,13 +4,8 @@ import { icons } from './icons.js'
 let map = null
 let myMarker = null
 let otherMarker = null
-let connectingLine = null
-let myLine = null
-let otherLine = null
 let myLatLng = null
 let otherLatLng = null
-let myPath = []
-let otherPath = []
 
 const TILES_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
 const TILES_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
@@ -82,9 +77,6 @@ export function initMap(containerId) {
  */
 export function updateMyPosition(lat, lng, username, color, avatar, status) {
   myLatLng = [lat, lng]
-  myPath.push(myLatLng)
-  if (myPath.length > 50) myPath.shift()
-
   if (!myMarker) {
     myMarker = L.marker([lat, lng], {
       icon: createDotIcon('me', 'Moi', color, avatar, status),
@@ -97,15 +89,6 @@ export function updateMyPosition(lat, lng, username, color, avatar, status) {
     myMarker.setLatLng([lat, lng])
     myMarker.setIcon(createDotIcon('me', 'Moi', color, avatar, status))
   }
-
-  if (!myLine) {
-    myLine = L.polyline(myPath, { color, weight: 3, opacity: 0.6, dashArray: '4, 6' }).addTo(map)
-  } else {
-    myLine.setLatLngs(myPath)
-    myLine.setStyle({ color })
-  }
-
-  updateConnectingLine()
 }
 
 /**
@@ -113,8 +96,6 @@ export function updateMyPosition(lat, lng, username, color, avatar, status) {
  */
 export function updateOtherPosition(lat, lng, username, color, avatar, status) {
   otherLatLng = [lat, lng]
-  otherPath.push(otherLatLng)
-  if (otherPath.length > 50) otherPath.shift()
 
   const popupContent = `<div style="text-align:center;font-family:var(--font-body);padding:4px;">
     <div style="font-weight:600;margin-bottom:10px;color:var(--text-primary);">${username || 'Ami'}</div>
@@ -131,34 +112,6 @@ export function updateOtherPosition(lat, lng, username, color, avatar, status) {
     otherMarker.setLatLng([lat, lng])
     otherMarker.setIcon(createDotIcon('other', username || 'Ami', color, avatar, status))
     otherMarker.setPopupContent(popupContent)
-  }
-
-  if (!otherLine) {
-    otherLine = L.polyline(otherPath, { color, weight: 3, opacity: 0.6, dashArray: '4, 6' }).addTo(map)
-  } else {
-    otherLine.setLatLngs(otherPath)
-    otherLine.setStyle({ color })
-  }
-
-  updateConnectingLine()
-}
-
-/**
- * Update the animated connecting line between both markers.
- */
-function updateConnectingLine() {
-  if (!myLatLng || !otherLatLng) return
-
-  if (!connectingLine) {
-    connectingLine = L.polyline([myLatLng, otherLatLng], {
-      color: '#6366f1',
-      weight: 2,
-      opacity: 0.5,
-      dashArray: '8, 8',
-      className: 'connecting-line'
-    }).addTo(map)
-  } else {
-    connectingLine.setLatLngs([myLatLng, otherLatLng])
   }
 }
 
@@ -179,16 +132,7 @@ export function removeOtherMarker() {
     map.removeLayer(otherMarker)
     otherMarker = null
   }
-  if (connectingLine) {
-    map.removeLayer(connectingLine)
-    connectingLine = null
-  }
-  if (otherLine) {
-    map.removeLayer(otherLine)
-    otherLine = null
-  }
   otherLatLng = null
-  otherPath = []
 }
 
 /**
@@ -249,12 +193,7 @@ export function destroyMap() {
     map = null
     myMarker = null
     otherMarker = null
-    connectingLine = null
-    myLine = null
-    otherLine = null
     myLatLng = null
     otherLatLng = null
-    myPath = []
-    otherPath = []
   }
 }
